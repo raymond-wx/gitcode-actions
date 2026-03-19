@@ -10,6 +10,8 @@ PR 模块封装了列表、创建、评论、设置以及统计等常见操作�
 
 - 列表：GET `/api/v5/repos/{owner}/{repo}/pulls`
 - 创建：POST `/api/v5/repos/{owner}/{repo}/pulls`
+- Diff：GET `https://gitcode.com/{owner}/{repo}/pull/{number}.diff`
+- Patch：GET `https://gitcode.com/{owner}/{repo}/pull/{number}.patch`
 - 评论：GET `/api/v5/repos/{owner}/{repo}/pulls/{number}/comments`
 - 创建评论：POST `/api/v5/repos/{owner}/{repo}/pulls/{number}/comments`
 - 统计：GET `/api/v5/repos/{owner}/{repo}/pull_requests/count`
@@ -20,9 +22,10 @@ PR 模块封装了列表、创建、评论、设置以及统计等常见操作�
 
 - `ListPullsQuery`、`ListPullsParams`、`PullRequest`、`ListPullsResponse`。
 - `CreatePullBody`：创建 PR 的请求体字段。
+- `PullRequestDiffFormat`、`PullRequestDiffOptions`：PR diff/patch 文本拉取参数。
 - `PRComment`、`PRCommentQueryOptions`、`CreatedPrComment`。
 - `PrCount`：PR 数量统计（按状态聚合）。
-- URL/Schema：`listPullsUrl`、`createPullUrl`、`prCommentsUrl`、`createPrCommentUrl`、`prCountUrl` 及对应的 Schema。
+- URL/Schema：`listPullsUrl`、`createPullUrl`、`getPullRequestDiffUrl`、`prCommentsUrl`、`createPrCommentUrl`、`prCountUrl` 及对应的 Schema。
 
 以上均可从包入口 `@xbghc/gitcode-api` 引入。
 
@@ -49,7 +52,11 @@ await client.pr.create(repoUrl, {
 const comments = await client.pr.comments(repoUrl, 123, { comment_type: 'pr_comment' });
 const created = await client.pr.createComment(repoUrl, 123, '这个修复看起来不错！');
 
-// 4) 统计 PR 数量（open/merged/closed）
+// 4) 获取 PR diff 文本
+const diff = await client.pr.diff(repoUrl, 123);
+const patch = await client.pr.diff(repoUrl, 123, { format: 'patch' });
+
+// 5) 统计 PR 数量（open/merged/closed）
 const count = await client.pr.count(repoUrl);
 console.log(count.open, count.merged, count.closed);
 ```

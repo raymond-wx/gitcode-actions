@@ -5,6 +5,7 @@ import { checkoutCommand } from './checkout.js';
 import { prSubCommand } from './settings.js';
 import { createPrCommentCommand } from './create-comment.js';
 import { prCommentsCommand } from './comments.js';
+import { prDiffCommand } from './diff.js';
 
 export function prCommand(): Command {
   const prProgram = new Command('pr').description('Pull request commands');
@@ -32,6 +33,14 @@ export function prCommand(): Command {
     .option('--issue <n>', 'Associate an issue number with the PR')
     .option('--json', 'Output created PR as JSON')
     .action(createCommand);
+
+  prProgram
+    .command('diff')
+    .description('Get the raw diff for a pull request')
+    .argument('<number>', 'Pull request number')
+    .argument('[url]', 'Repository URL')
+    .option('--patch', 'Output patch text instead of diff')
+    .action(prDiffCommand);
 
   prProgram
     .command('checkout')

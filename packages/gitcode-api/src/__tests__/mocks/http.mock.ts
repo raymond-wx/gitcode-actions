@@ -7,6 +7,8 @@ import type { Got, Response } from 'got';
 export interface MockResponse {
   /** 成功响应数据 */
   data?: unknown;
+  /** 成功响应文本 */
+  text?: string;
   /** 错误响应（会被抛出） */
   error?: Error & { response?: MockHttpErrorResponse };
 }
@@ -86,6 +88,35 @@ export function createMockGot(responses: Map<string, MockResponse> = new Map()):
           }
 
           return response.data;
+        },
+        text: async () => {
+          // 尝试 "METHOD:url" 格式
+          let response = responses.get(`${method}:${url}`);
+
+          // 尝试仅 "url" 格式
+          if (!response) {
+            response = responses.get(url);
+          }
+
+          // 尝试部分匹配（用于动态 URL）
+          if (!response) {
+            for (const [key, value] of responses.entries()) {
+              if (url.includes(key) || key.includes(url)) {
+                response = value;
+                break;
+              }
+            }
+          }
+
+          if (!response) {
+            throw new Error(`No mock response for ${method} ${url}`);
+          }
+
+          if (response.error) {
+            throw response.error;
+          }
+
+          return response.text ?? String(response.data ?? '');
         },
       };
     });

@@ -145,6 +145,20 @@ Token removed successfully
 
 仓库相关命令。
 
+### gitcode pr diff <number> [url]
+
+输出指定 PR 的原始 diff 文本。
+
+```bash
+gitcode pr diff 123
+gitcode pr diff 123 https://gitcode.com/owner/repo.git
+gitcode pr diff 123 | less
+```
+
+- 默认输出 `.diff` 文本到 stdout，方便管道或重定向
+- 可选 `--patch`：输出 `.patch` 文本
+- `url` 未传时，会从当前 Git 仓库的 `origin` remote 自动解析 GitCode 仓库地址
+
 #### gitcode repo permission [git-url]
 
 查询当前登录用户在指定仓库（通过仓库链接）的权限。

@@ -1,5 +1,7 @@
 export type { ListPullsQuery, ListPullsParams, PullRequest, ListPullsResponse } from './list.js';
 export { listPullsUrl, pullRequestSchema, listPullsResponseSchema } from './list.js';
+export type { PullRequestDiffFormat, PullRequestDiffOptions } from './diff.js';
+export { getPullRequestDiffUrl } from './diff.js';
 export type { PullRequestDetail } from './get.js';
 export { getPullRequestUrl, pullRequestDetailSchema } from './get.js';
 export type { CreatePullBody } from './create.js';

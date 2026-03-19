@@ -45,6 +45,7 @@ export type {
 export {
   createPullUrl,
   createdPrCommentSchema,
+  getPullRequestDiffUrl,
   listPullsResponseSchema,
   listPullsUrl,
   prCommentSchema,
@@ -62,6 +63,8 @@ export type {
   PRComment,
   PRCommentQueryOptions,
   PrCount,
+  PullRequestDiffFormat,
+  PullRequestDiffOptions,
   PullRequest,
   PullRequestDetail,
 } from './api/pr/index.js';

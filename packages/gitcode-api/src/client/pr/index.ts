@@ -2,6 +2,7 @@ import type {
   CreatedPrComment,
   CreatePullBody,
   ListPullsQuery,
+  PullRequestDiffOptions,
   PRCommentQueryOptions,
   PrCount,
   PullRequestDetail,
@@ -11,6 +12,7 @@ import { listPullRequestComments } from './comments.js';
 import { getPullRequestCount } from './count.js';
 import { createPrComment } from './create-comment.js';
 import { createPullRequest } from './create.js';
+import { getPullRequestDiff } from './diff.js';
 import { getPullRequest } from './get.js';
 import { listPullRequests } from './list.js';
 
@@ -80,6 +82,18 @@ export class GitCodeClientPr {
    */
   async get(url: string, prNumber: number): Promise<PullRequestDetail> {
     return await getPullRequest(this.client, url, prNumber);
+  }
+
+  /**
+   * 获取 PR 的 diff/patch 文本
+   *
+   * @param url - 仓库地址
+   * @param prNumber - PR 编号
+   * @param options - 输出格式，默认 diff
+   * @returns 原始 diff/patch 文本
+   */
+  async diff(url: string, prNumber: number, options: PullRequestDiffOptions = {}): Promise<string> {
+    return await getPullRequestDiff(this.client, url, prNumber, options);
   }
 
   /**

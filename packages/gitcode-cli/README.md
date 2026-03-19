@@ -18,6 +18,9 @@ gitcode pr list   # 就这么简单
 # 一键切到 PR 分支，本地 review
 gitcode pr checkout 123
 
+# 拉取 PR diff 原文
+gitcode pr diff 123 | less
+
 # 快速创建 Issue
 gitcode issue create -t "Bug: 登录失败" -b "复现步骤..."
 
