@@ -3,6 +3,7 @@ import { permissionCommand } from './permission.js';
 import { repoSubCommand } from './info.js';
 import { notificationsCommand } from './notifications.js';
 import { markNotificationsReadCommand } from './mark-read.js';
+import { forkCommand } from './fork.js';
 
 export function repoCommand(): Command {
   const repoProgram = new Command('repo').description('Repository commands');
@@ -12,6 +13,15 @@ export function repoCommand(): Command {
     .description("Show current user's role on a repo")
     .option('--json', 'Output raw JSON instead of formatted text')
     .action(permissionCommand);
+
+  repoProgram
+    .command('fork [url]')
+    .description('Fork a repository')
+    .option('--json', 'Output raw JSON instead of formatted text')
+    .option('--organization <organization>', 'Fork into the specified organization')
+    .option('--name <name>', 'Set the fork repository name')
+    .option('--path <path>', 'Set the fork repository path')
+    .action(forkCommand);
 
   repoProgram
     .command('notifications [url]')

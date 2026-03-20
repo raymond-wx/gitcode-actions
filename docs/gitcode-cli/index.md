@@ -172,6 +172,21 @@ gitcode repo permission
 - 调用：`GET /api/v5/repos/{owner}/{repo}/collaborators/self-permission`
 - 输出：固定为一个词：`admin | write | read | none`（仓库不存在时返回 `none`）
 
+#### gitcode repo fork [git-url]
+
+fork 指定仓库到当前登录用户或指定组织下。
+
+```bash
+gitcode repo fork https://gitcode.com/owner/repo.git
+gitcode repo fork
+gitcode repo fork https://gitcode.com/owner/repo.git --organization my-org --name repo-fork --path repo-fork
+```
+
+- 调用：`POST https://api.gitcode.com/api/v5/repos/{owner}/{repo}/forks?access_token=...`
+- `git-url` 未传时，会从当前 Git 仓库的 `origin` remote 自动解析 GitCode 仓库地址
+- 可选参数：`--organization`、`--name`、`--path`
+- 默认输出 fork 前后的仓库全名和新仓库地址；`--json` 输出完整响应
+
 #### gitcode repo info
 
 仓库信息命令组。

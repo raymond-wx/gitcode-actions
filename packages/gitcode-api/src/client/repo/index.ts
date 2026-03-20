@@ -8,6 +8,7 @@ import {
   compareUrl,
   contributorsSchema,
   contributorsUrl,
+  forkRepoUrl,
   fileBlobSchema,
   fileBlobUrl,
   notificationsResponseSchema,
@@ -26,6 +27,7 @@ import {
   type Commits,
   type Compare,
   type Contributors,
+  type ForkRepoBody,
   type FileBlob,
   type MarkNotificationsReadParams,
   type NotificationQuery,
@@ -36,7 +38,9 @@ import {
   type RepoSettings,
   type Webhook,
   type Webhooks,
+  repoSchema,
 } from '../../api/repo/index.js';
+import { parseGitUrl, toQuery } from '../../utils/index.js';
 import { type SelfPermissionResponse } from '../../api/repo/self-permission.js';
 import type { RepoRole } from '../../types/repo-role.js';
 import type { GitCodeClient } from '../core.js';
@@ -293,6 +297,40 @@ export async function getPullRequestSettings(
   });
 }
 
+export async function forkRepo(
+  client: GitCodeClient,
+  url: string,
+  body: ForkRepoBody = {},
+): Promise<import('../../api/repo/index.js').Repo> {
+  const parsed = parseGitUrl(url);
+  if (!parsed?.owner || !parsed.repo) {
+    throw new Error(`Invalid Git URL: ${url}`);
+  }
+  if (!parsed.host || !/gitcode\.(com|net)(?::\d+)?$/i.test(parsed.host)) {
+    throw new Error(`Invalid GitCode repository URL: ${url}`);
+  }
+
+  const { owner, repo } = parsed;
+
+  const token = await client.auth.getValidToken();
+  const apiUrl = new URL(forkRepoUrl(owner, repo));
+  apiUrl.searchParams.set('access_token', token);
+
+  const requestBody = Object.keys(body).length > 0 ? body : undefined;
+  const response = await client.http
+    .post(apiUrl.toString(), requestBody ? { json: requestBody } : undefined)
+    .json();
+
+  return parseApiResponse(repoSchema, response, {
+    endpoint: apiUrl.toString(),
+    method: 'POST',
+    params: {
+      access_token: token,
+      ...toQuery(requestBody),
+    },
+  });
+}
+
 /**
  * GitCode 仓库客户端模块
  *
@@ -442,5 +480,12 @@ export class GitCodeClientRepo {
 
   async getPullRequestSettings(owner: string, repo: string): Promise<PullRequestSettings> {
     return await getPullRequestSettings(this.client, owner, repo);
+  }
+
+  async fork(
+    url: string,
+    body: ForkRepoBody = {},
+  ): Promise<import('../../api/repo/index.js').Repo> {
+    return await forkRepo(this.client, url, body);
   }
 }

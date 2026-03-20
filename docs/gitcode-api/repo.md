@@ -17,6 +17,11 @@ const repoUrl = 'https://gitcode.com/owner/repo.git';
 // 权限
 const permission = await client.repo.getSelfRepoPermission(repoUrl);
 const role = await client.repo.getSelfRepoPermissionRole(repoUrl);
+const forkedRepo = await client.repo.fork(repoUrl, {
+  organization: 'my-org',
+  name: 'repo-fork',
+  path: 'repo-fork',
+});
 
 // 仓库配置与事件
 const settings = await client.repo.getSettings('owner', 'repo');
@@ -48,6 +53,7 @@ await client.repo.markNotificationsRead('owner', 'repo', { ids: '123,456' });
 ## 导出与类型
 
 - 权限：`selfPermissionUrl`、`selfPermissionResponseSchema`、`RepoRole` 以及相关类型。
+- Fork：`forkRepoUrl`、`forkRepoBodySchema`、`ForkRepoBody`。
 - 仓库配置与事件：`repoSettingsUrl`、`repoEventsUrl`、`repoSettingsSchema`、`repoEventsSchema`。
 - PR 设置：`pullRequestSettingsUrl`、`pullRequestSettingsSchema`、`PullRequestSettings`。
 - 贡献者：`contributorsUrl`、`contributorsSchema`。
@@ -64,6 +70,7 @@ await client.repo.markNotificationsRead('owner', 'repo', { ids: '123,456' });
 
 - `client.repo.getSelfRepoPermission(url): SelfPermissionResponse` — 解析远程地址（HTTP/SSH/`owner/repo`）并返回完整权限树。
 - `client.repo.getSelfRepoPermissionRole(url): RepoRole` — 在权限树基础上提取归一化角色（`'admin' | 'write' | 'read' | 'none'`）。
+- `client.repo.fork(url, body?): Repo` — fork 指定仓库；会自动读取有效 token，并以 `access_token` query 形式调用 `https://api.gitcode.com/api/v5/repos/{owner}/{repo}/forks`。
 - `client.repo.getSettings(owner, repo): RepoSettings` — 默认分支、合并策略、CI 等配置。
 - `client.repo.getPullRequestSettings(owner, repo): PullRequestSettings` — 获取仓库的 PR 合并策略设置（reject_not_signed_by_gpg、deny_force_push、max_file_size、skip_rule_for_owner）。
 - `client.repo.getEvents(owner, repo): RepoEvents` — 仓库事件时间线。
@@ -81,6 +88,7 @@ await client.repo.markNotificationsRead('owner', 'repo', { ids: '123,456' });
 ## 注意事项
 
 - 权限方法接受完整仓库 URL、`owner/repo` 或 `.git` 结尾地址，内部会调用 `parseGitUrl` 统一解析。
+- `fork` 方法接受完整仓库 URL、`owner/repo` 或 `.git` 结尾地址；可选 body 字段为 `organization`、`name`、`path`。
 - `getCommits`、`getEvents` 等接口直接返回 GitCode API 的原始分页结果（按默认分页大小）。如需更多数据，可自行拼接 `searchParams` 配合 `client.request` 与 URL 构建器使用。
 - `getFileBlob` 返回的 `content` 经过 base64 编码，需自行解码。
 
@@ -125,5 +133,6 @@ await client.repo.markNotificationsRead('owner', 'repo', { ids: '123,456' });
 
 - **2025-11-04**：完善类型定义，将 `repoSchema.owner` 从 `z.any()` 改为 `userSummarySchema.nullable()`，将 `branchSchema.user` 从 `z.unknown()` 改为 `userSummarySchema`，确保所有字段可序列化。
 - **2025-11-04**：新增通知 API，支持获取仓库通知和标记已读。
+- **2026-03-19**：新增仓库 fork API 与 CLI 封装，使用 `https://api.gitcode.com/api/v5/repos/{owner}/{repo}/forks`。
 - **2025-09-13**：新增仓库事件、分支、提交、文件、对比与 Webhook 等接口封装。
 - **2025-09-17**：所有请求支持 `searchParams`/`json` 选项并复用 HTTP 调试日志、重试机制。

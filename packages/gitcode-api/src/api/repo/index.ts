@@ -15,6 +15,7 @@ export const repoSchema = z.object({
 export type Repo = z.infer<typeof repoSchema>;
 
 export * from './commits.js';
+export * from './fork.js';
 export * from './files.js';
 export * from './notifications.js';
 export * from './settings.js';
