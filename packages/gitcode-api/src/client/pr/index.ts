@@ -7,6 +7,7 @@ import type {
   PrCount,
   PullRequestDetail,
 } from '../../api/pr/index.js';
+import type { CreatePrCommentBody } from '../../api/pr/create-comment.js';
 import type { GitCodeClient } from '../core.js';
 import { listPullRequestComments } from './comments.js';
 import { getPullRequestCount } from './count.js';
@@ -15,6 +16,8 @@ import { createPullRequest } from './create.js';
 import { getPullRequestDiff } from './diff.js';
 import { getPullRequest } from './get.js';
 import { listPullRequests } from './list.js';
+
+type CreateCommentOptions = Pick<CreatePrCommentBody, 'path' | 'position'>;
 
 /**
  * GitCode Pull Request 客户端模块
@@ -143,6 +146,7 @@ export class GitCodeClientPr {
    * @param url - 仓库地址
    * @param prNumber - PR 编号
    * @param body - 评论内容（支持 Markdown）
+   * @param options - 可选的 diff 评论参数
    * @returns 创建成功的评论信息
    *
    * @example
@@ -154,11 +158,26 @@ export class GitCodeClientPr {
    * );
    * ```
    */
-  async createComment(url: string, prNumber: number, body: string): Promise<CreatedPrComment> {
+  async createComment(
+    url: string,
+    prNumber: number,
+    body: string,
+    options?: CreateCommentOptions,
+  ): Promise<CreatedPrComment> {
+    const commentBody: CreatePrCommentBody = { body };
+
+    if (options?.path !== undefined) {
+      commentBody.path = options.path;
+    }
+
+    if (options?.position !== undefined) {
+      commentBody.position = options.position;
+    }
+
     return await createPrComment(this.client, {
       url,
       number: prNumber,
-      body: { body },
+      body: commentBody,
     });
   }
 

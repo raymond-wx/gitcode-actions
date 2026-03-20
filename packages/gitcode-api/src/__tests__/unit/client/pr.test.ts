@@ -92,3 +92,82 @@ describe('GitCodeClientPr.diff', () => {
     await expect(client.pr.diff('not-a-url', 123)).rejects.toThrow('Invalid Git URL: not-a-url');
   });
 });
+
+describe('GitCodeClientPr.createComment', () => {
+  it('should send only the body when options are omitted', async () => {
+    const responses = new Map([
+      [
+        'POST:https://gitcode.com/api/v5/repos/owner/repo/pulls/123/comments',
+        { data: { id: 1, body: 'LGTM' } },
+      ],
+    ]);
+    const { mockGot, requests } = createMockGot(responses);
+    const client = new GitCodeClient('test-token', mockGot);
+
+    await client.pr.createComment('https://gitcode.com/owner/repo.git', 123, 'LGTM');
+
+    expect(requests[0]).toMatchObject({
+      method: 'POST',
+      url: 'https://gitcode.com/api/v5/repos/owner/repo/pulls/123/comments',
+      options: {
+        json: {
+          body: 'LGTM',
+        },
+      },
+    });
+  });
+
+  it('should include diff comment coordinates when provided', async () => {
+    const responses = new Map([
+      [
+        'POST:https://gitcode.com/api/v5/repos/owner/repo/pulls/123/comments',
+        { data: { id: 1, body: 'LGTM' } },
+      ],
+    ]);
+    const { mockGot, requests } = createMockGot(responses);
+    const client = new GitCodeClient('test-token', mockGot);
+
+    await client.pr.createComment('https://gitcode.com/owner/repo.git', 123, 'LGTM', {
+      path: 'src/file.ts',
+      position: 42,
+    });
+
+    expect(requests[0]).toMatchObject({
+      method: 'POST',
+      url: 'https://gitcode.com/api/v5/repos/owner/repo/pulls/123/comments',
+      options: {
+        json: {
+          body: 'LGTM',
+          path: 'src/file.ts',
+          position: 42,
+        },
+      },
+    });
+  });
+
+  it('should preserve position zero in the request body', async () => {
+    const responses = new Map([
+      [
+        'POST:https://gitcode.com/api/v5/repos/owner/repo/pulls/123/comments',
+        { data: { id: 1, body: 'LGTM' } },
+      ],
+    ]);
+    const { mockGot, requests } = createMockGot(responses);
+    const client = new GitCodeClient('test-token', mockGot);
+
+    await client.pr.createComment('https://gitcode.com/owner/repo.git', 123, 'LGTM', {
+      position: 0,
+    });
+
+    expect(requests[0]).toMatchObject({
+      method: 'POST',
+      url: 'https://gitcode.com/api/v5/repos/owner/repo/pulls/123/comments',
+      options: {
+        json: {
+          body: 'LGTM',
+          position: 0,
+        },
+      },
+    });
+  });
+});

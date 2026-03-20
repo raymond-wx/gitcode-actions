@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "lint": "eslint .",
+    "test": "vitest run -c vitest.config.ts",
     "start": "node dist/index.js",
     "prepublishOnly": "pnpm build && pnpm typecheck"
   },
@@ -42,7 +43,8 @@
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
-    "esbuild": "^0.21.5"
+    "esbuild": "^0.21.5",
+    "vitest": "^4.0.7"
   },
   "dependencies": {
     "@inquirer/prompts": "^7.10.0",

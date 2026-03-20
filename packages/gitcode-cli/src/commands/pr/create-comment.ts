@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import { parseGitUrl } from '@xbghc/gitcode-api';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -11,7 +11,22 @@ interface CreatePrCommentOptions {
   bodyFile?: string;
   editor?: boolean;
   json?: boolean;
+  path?: string;
+  position?: number;
   repo?: string;
+}
+
+function parsePositiveIntegerPosition(value: string): number {
+  if (!/^\d+$/.test(value)) {
+    throw new InvalidArgumentError('Position must be a positive integer');
+  }
+
+  const position = Number.parseInt(value, 10);
+  if (position <= 0) {
+    throw new InvalidArgumentError('Position must be a positive integer');
+  }
+
+  return position;
 }
 
 // 获取默认编辑器
@@ -63,7 +78,15 @@ export async function createPrCommentAction(
         throw new Error('Invalid PR number');
       }
 
-      const comment = await client.pr.createComment(repoUrl, prNum, body);
+      const commentOptions =
+        options.path || options.position !== undefined
+          ? {
+              path: options.path,
+              position: options.position,
+            }
+          : undefined;
+
+      const comment = await client.pr.createComment(repoUrl, prNum, body, commentOptions);
 
       if (options.json) {
         console.log(JSON.stringify(comment, null, 2));
@@ -104,10 +127,30 @@ export function createPrCommentCommand(): Command {
     )
     .option('-e, --editor', 'Open text editor to write the comment')
     .option('--json', 'Output raw JSON instead of formatted output')
+    .option('--path <file>', 'Create a diff comment for the specified file path')
+    .option(
+      '--position <n>',
+      'Create a diff comment at the specified diff position',
+      parsePositiveIntegerPosition,
+    )
     .option(
       '-R, --repo <[HOST/]OWNER/REPO>',
       'Select another repository using the [HOST/]OWNER/REPO format',
     )
+    .hook('preAction', (command) => {
+      const options = command.opts<CreatePrCommentOptions>();
+      const hasExplicitPath = options.path !== undefined;
+      const hasPath = typeof options.path === 'string' && options.path.trim().length > 0;
+      const hasPosition = options.position !== undefined;
+
+      if (hasExplicitPath && !hasPath) {
+        throw new InvalidArgumentError('--path and --position must be supplied together');
+      }
+
+      if (hasPath !== hasPosition) {
+        throw new InvalidArgumentError('--path and --position must be supplied together');
+      }
+    })
     .action(
       async (prNumber: string, repoUrlArg: string | undefined, options: CreatePrCommentOptions) => {
         const repoArg = repoUrlArg?.trim() || undefined;
