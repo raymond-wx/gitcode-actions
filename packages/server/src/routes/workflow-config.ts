@@ -6,6 +6,7 @@ import type {
   UpdateWorkflowConfigRequest,
 } from '@xbghc/gitcode-actions';
 import { logger } from '../utils/logger.js';
+import { getSingleValue } from '../utils/request-param.js';
 import { ValidationError, NotFoundError, ConflictError, InternalError } from '../errors/index.js';
 
 export const workflowConfigRouter: Router = Router();
@@ -17,7 +18,12 @@ export const workflowConfigRouter: Router = Router();
 workflowConfigRouter.get(
   '/repos/:owner/:repo/workflows',
   withAuth(async (req, res) => {
-    const { owner, repo } = req.params;
+    const owner = getSingleValue(req.params.owner);
+    const repo = getSingleValue(req.params.repo);
+
+    if (!owner || !repo) {
+      throw new ValidationError('owner and repo are required');
+    }
 
     try {
       const configs = await workflowConfigService.listByRepo(owner, repo);
@@ -43,8 +49,13 @@ workflowConfigRouter.get(
 workflowConfigRouter.post(
   '/repos/:owner/:repo/workflows',
   withAuth(async (req, res) => {
-    const { owner, repo } = req.params;
+    const owner = getSingleValue(req.params.owner);
+    const repo = getSingleValue(req.params.repo);
     const request: CreateWorkflowConfigRequest = req.body;
+
+    if (!owner || !repo) {
+      throw new ValidationError('owner and repo are required');
+    }
 
     // 验证必需字段
     if (!request.name || !request.steps || request.steps.length === 0) {
@@ -90,8 +101,14 @@ workflowConfigRouter.post(
 workflowConfigRouter.put(
   '/repos/:owner/:repo/workflows/:id',
   withAuth(async (req, res) => {
-    const { owner, repo, id } = req.params;
+    const owner = getSingleValue(req.params.owner);
+    const repo = getSingleValue(req.params.repo);
+    const id = getSingleValue(req.params.id);
     const updates: UpdateWorkflowConfigRequest = req.body;
+
+    if (!owner || !repo || !id) {
+      throw new ValidationError('owner, repo and id are required');
+    }
 
     // 验证 steps 格式（如果提供）
     if (updates.steps) {
@@ -135,7 +152,13 @@ workflowConfigRouter.put(
 workflowConfigRouter.delete(
   '/repos/:owner/:repo/workflows/:id',
   withAuth(async (req, res) => {
-    const { owner, repo, id } = req.params;
+    const owner = getSingleValue(req.params.owner);
+    const repo = getSingleValue(req.params.repo);
+    const id = getSingleValue(req.params.id);
+
+    if (!owner || !repo || !id) {
+      throw new ValidationError('owner, repo and id are required');
+    }
 
     try {
       await workflowConfigService.delete(owner, repo, id);

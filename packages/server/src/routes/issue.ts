@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { withAuth } from '../middleware/auth.js';
 import { createGitCodeClient } from '../utils/gitcode-client.js';
 import { logger } from '../utils/logger.js';
+import { getSingleValue } from '../utils/request-param.js';
 import { ValidationError, ExternalServiceError } from '../errors/index.js';
 
 export const issueRouter: Router = Router();
@@ -202,11 +203,15 @@ issueRouter.get(
 issueRouter.post(
   '/repo/:owner/:repo/issues',
   withAuth(async (req, res, token) => {
-    const { owner, repo } = req.params;
+    const owner = getSingleValue(req.params.owner);
+    const repo = getSingleValue(req.params.repo);
     const { title, body, labels, assignees } = req.body;
 
     if (!title) {
       throw new ValidationError('Issue title is required');
+    }
+    if (!owner || !repo) {
+      throw new ValidationError('owner and repo are required');
     }
 
     const client = createGitCodeClient(token);
@@ -304,11 +309,16 @@ issueRouter.get(
 issueRouter.post(
   '/repo/:owner/:repo/issues/:number/comments',
   withAuth(async (req, res, token) => {
-    const { owner, repo, number } = req.params;
+    const owner = getSingleValue(req.params.owner);
+    const repo = getSingleValue(req.params.repo);
+    const number = getSingleValue(req.params.number);
     const { body } = req.body;
 
     if (!body) {
       throw new ValidationError('Comment body is required');
+    }
+    if (!owner || !repo || !number) {
+      throw new ValidationError('owner, repo and issue number are required');
     }
 
     const client = createGitCodeClient(token);

@@ -5,6 +5,7 @@ import { workflowConfigService } from '../services/workflow-config-service.js';
 import { workflowLogService } from '../services/workflow-log-service.js';
 import { createGitCodeClient } from '../utils/gitcode-client.js';
 import { logger } from '../utils/logger.js';
+import { getSingleValue } from '../utils/request-param.js';
 import { ValidationError, NotFoundError, InternalError } from '../errors/index.js';
 
 export const workflowRouter: Router = Router();
@@ -75,7 +76,7 @@ workflowRouter.post(
  * GET /api/workflow/:workflowId/stream
  */
 workflowRouter.get('/workflow/:workflowId/stream', (req: Request, res: Response) => {
-  const { workflowId } = req.params;
+  const workflowId = getSingleValue(req.params.workflowId);
 
   if (!workflowId) {
     throw new ValidationError('workflowId is required');
@@ -151,7 +152,7 @@ workflowRouter.get('/workflow/:workflowId/stream', (req: Request, res: Response)
  * GET /api/workflow/:workflowId
  */
 workflowRouter.get('/workflow/:workflowId', (req: Request, res: Response) => {
-  const { workflowId } = req.params;
+  const workflowId = getSingleValue(req.params.workflowId);
 
   if (!workflowId) {
     throw new ValidationError('workflowId is required');
@@ -175,7 +176,7 @@ workflowRouter.get('/workflow/:workflowId', (req: Request, res: Response) => {
  * 这是一个管理接口，可用于定期清理
  */
 workflowRouter.delete('/workflow/cleanup', (req: Request, res: Response) => {
-  const { maxAge } = req.query;
+  const maxAge = getSingleValue(req.query.maxAge);
   const maxAgeMs = maxAge ? Number(maxAge) : undefined;
 
   try {
@@ -225,7 +226,12 @@ workflowRouter.get('/workflow/test-all-registry-mirrors', (_req: Request, res: R
 workflowRouter.get(
   '/workflows/:owner/:repo',
   withAuth(async (req, res) => {
-    const { owner, repo } = req.params;
+    const owner = getSingleValue(req.params.owner);
+    const repo = getSingleValue(req.params.repo);
+
+    if (!owner || !repo) {
+      throw new ValidationError('owner and repo are required');
+    }
 
     try {
       const workflows = workflowService.listByRepo(owner, repo);
@@ -251,7 +257,12 @@ workflowRouter.get(
 workflowRouter.get(
   '/repos/:owner/:repo/workflows/logs',
   withAuth(async (req, res) => {
-    const { owner, repo } = req.params;
+    const owner = getSingleValue(req.params.owner);
+    const repo = getSingleValue(req.params.repo);
+
+    if (!owner || !repo) {
+      throw new ValidationError('owner and repo are required');
+    }
 
     try {
       const result = await workflowLogService.listWorkflowLogs(owner, repo);
@@ -274,7 +285,13 @@ workflowRouter.get(
 workflowRouter.get(
   '/repos/:owner/:repo/workflows/logs/:id',
   withAuth(async (req, res) => {
-    const { owner, repo, id } = req.params;
+    const owner = getSingleValue(req.params.owner);
+    const repo = getSingleValue(req.params.repo);
+    const id = getSingleValue(req.params.id);
+
+    if (!owner || !repo || !id) {
+      throw new ValidationError('owner, repo and id are required');
+    }
 
     try {
       const workflow = await workflowLogService.getWorkflowLog(owner, repo, id);
@@ -304,7 +321,13 @@ workflowRouter.get(
 workflowRouter.delete(
   '/repos/:owner/:repo/workflows/logs/:id',
   withAuth(async (req, res) => {
-    const { owner, repo, id } = req.params;
+    const owner = getSingleValue(req.params.owner);
+    const repo = getSingleValue(req.params.repo);
+    const id = getSingleValue(req.params.id);
+
+    if (!owner || !repo || !id) {
+      throw new ValidationError('owner, repo and id are required');
+    }
 
     try {
       const deleted = await workflowLogService.deleteWorkflowLog(owner, repo, id);
